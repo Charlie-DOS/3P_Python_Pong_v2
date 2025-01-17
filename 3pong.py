@@ -5,6 +5,15 @@ import random
 # Initialize Pygame
 pygame.init()
 
+# Controls
+P1_1 = pygame.K_s
+P1_2 = pygame.K_a
+P2_1 = pygame.K_DOWN
+P2_2 = pygame.K_UP
+P3_1 = pygame.K_o
+P3_2 = pygame.K_l
+QUIT_GAME = pygame.K_ESCAPE
+
 # Constants
 WINDOW_SIZE = 800
 PADDLE_LENGTH = 100
@@ -31,6 +40,7 @@ def get_hex_walls():
     center_x = WINDOW_SIZE // 2
     center_y = WINDOW_SIZE // 2
     
+
     for i in range(6):
         angle1 = math.pi/3 * i
         angle2 = math.pi/3 * (i + 1)
@@ -198,24 +208,27 @@ def main():
         
         # Handle paddle movement
         keys = pygame.key.get_pressed()
-        # Player 1 controls (W/S)
-        if keys[pygame.K_w]:
-            paddles[0].position = min(1, paddles[0].position + PADDLE_SPEED/100)
-        if keys[pygame.K_s]:
-            paddles[0].position = max(-1, paddles[0].position - PADDLE_SPEED/100)
+        # Player 1 controls (A/S)
+        if keys[P1_1]:
+            paddles[0].position = min(1.6, paddles[0].position + PADDLE_SPEED/100)
+        if keys[P1_2]:
+            paddles[0].position = max(-1.6, paddles[0].position - PADDLE_SPEED/100)
             
         # Player 2 controls (Up/Down)
-        if keys[pygame.K_UP]:
-            paddles[1].position = min(1, paddles[1].position + PADDLE_SPEED/100)
-        if keys[pygame.K_DOWN]:
-            paddles[1].position = max(-1, paddles[1].position - PADDLE_SPEED/100)
+        if keys[P2_1]:
+            paddles[1].position = min(1.65, paddles[1].position + PADDLE_SPEED/100)
+        if keys[P2_2]:
+            paddles[1].position = max(-1.5, paddles[1].position - PADDLE_SPEED/100)
             
         # Player 3 controls (O/L)
-        if keys[pygame.K_o]:
-            paddles[2].position = min(1, paddles[2].position + PADDLE_SPEED/100)
-        if keys[pygame.K_l]:
-            paddles[2].position = max(-1, paddles[2].position - PADDLE_SPEED/100)
+        if keys[P3_1]:
+            paddles[2].position = min(1.5, paddles[2].position + PADDLE_SPEED/100)
+        if keys[P3_2]:
+            paddles[2].position = max(-1.65, paddles[2].position - PADDLE_SPEED/100)
         
+        # esc to quit game
+        if keys[QUIT_GAME]:
+            running = False
         # Move ball
         ball.move()
         
@@ -242,7 +255,7 @@ def main():
         # Draw everything
         screen.fill(BLACK)
         
-        # Draw hexagon border
+        # Draw hexagon border (modified to draw only bounce walls)
         hex_points = []
         center_x = WINDOW_SIZE // 2
         center_y = WINDOW_SIZE // 2
@@ -251,7 +264,11 @@ def main():
             x = center_x + HEX_RADIUS * math.cos(angle)
             y = center_y + HEX_RADIUS * math.sin(angle)
             hex_points.append((int(x), int(y)))
-        pygame.draw.polygon(screen, WHITE, hex_points, 2)
+        # pygame.draw.polygon(screen, WHITE, hex_points, 2)
+        pygame.draw.line(screen, WHITE, hex_points[1],hex_points[2], 2)
+        pygame.draw.line(screen, WHITE, hex_points[3],hex_points[4], 2)
+        pygame.draw.line(screen, WHITE, hex_points[5],hex_points[0], 2)
+
         
         # Draw paddles and scores
         font = pygame.font.Font(None, 36)
