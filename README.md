@@ -3,9 +3,9 @@
 The intent of this fork is to make modifications and improve the replay ability of the 3 person pong game developed by Mycole as well as just learn my way around the pygame library.
 
 ## Controls
-1P (RED): A, S
-2P (GREEN): Up, Down arrows
-3P (BLUE): O, L 
+1P (RED): A, S  
+2P (GREEN): Up, Down arrows  
+3P (BLUE): O, L  
 
 Quit: Esc
 

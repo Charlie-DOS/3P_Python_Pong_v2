@@ -195,6 +195,8 @@ def main():
         Paddle(150, BLUE)   # Actually defends ~330° side
     ]
 
+    last_paddle = None
+
     ball = Ball()
     clock = pygame.time.Clock()
     walls = get_hex_walls()
@@ -234,11 +236,13 @@ def main():
         
         # Check for collisions with paddles
         for paddle in paddles:
-            ball.check_paddle_collision(paddle)
-            
+            if ball.check_paddle_collision(paddle):
+                last_paddle = paddle
+
         # Check for collisions with walls
         if ball.check_wall_collisions(walls, paddles):
-            # If we hit a scoring wall, find the closest paddle and decrement their score
+            # If scoring wall hit, last active paddle gets the point
+            # If the last paddle hits it's own scoring wall, decrease points
             min_dist = float('inf')
             losing_paddle = None
             for paddle in paddles:
@@ -249,7 +253,11 @@ def main():
                 if dist < min_dist:
                     min_dist = dist
                     losing_paddle = paddle
-            losing_paddle.score -= 1
+            if last_paddle == losing_paddle:
+                losing_paddle.score -= 1
+            elif last_paddle:
+                last_paddle.score += 1
+            last_paddle = None
             ball.reset()
         
         # Draw everything
