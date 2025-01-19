@@ -106,13 +106,25 @@ class Ball:
         angle = random.uniform(0, 2 * math.pi)
         self.dx = BALL_SPEED * math.cos(angle)
         self.dy = BALL_SPEED * math.sin(angle)
-    
+        self.flashing = True
+        self.flash_start_time = pygame.time.get_ticks()
+
     def move(self):
-        self.x += self.dx
-        self.y += self.dy
+        if not self.flashing:
+            self.x += self.dx
+            self.y += self.dy
     
     def draw(self):
-        pygame.draw.circle(screen, WHITE, (int(self.x), int(self.y)), BALL_RADIUS)
+        # If flashing, toggle visibility
+        if self.flashing:
+            elapsed_time = pygame.time.get_ticks() - self.flash_start_time
+            if elapsed_time > 500:  # End flashing after 500ms
+                self.flashing = False
+            elif (elapsed_time // 100) % 2 == 0:  # Flash toggle every 100ms
+                pygame.draw.circle(screen, WHITE, (int(self.x), int(self.y)), BALL_RADIUS)
+        else:
+            # Draw the ball normally
+            pygame.draw.circle(screen, WHITE, (int(self.x), int(self.y)), BALL_RADIUS)
 
     def line_collision(self, p1, p2):
         """Check for collision with a line segment and return collision point if any"""
@@ -272,10 +284,10 @@ def main():
             x = center_x + HEX_RADIUS * math.cos(angle)
             y = center_y + HEX_RADIUS * math.sin(angle)
             hex_points.append((int(x), int(y)))
-        # pygame.draw.polygon(screen, WHITE, hex_points, 2)
-        pygame.draw.line(screen, WHITE, hex_points[1],hex_points[2], 2)
-        pygame.draw.line(screen, WHITE, hex_points[3],hex_points[4], 2)
-        pygame.draw.line(screen, WHITE, hex_points[5],hex_points[0], 2)
+        # pygame.draw.polygon(screen, WHITE, walls, 2)
+        pygame.draw.line(screen, WHITE, walls[1][0], walls[1][1], 2)
+        pygame.draw.line(screen, WHITE, walls[3][0], walls[3][1], 2)
+        pygame.draw.line(screen, WHITE, walls[5][0], walls[5][1], 2)
 
         
         # Draw paddles and scores
