@@ -9,18 +9,21 @@ The intent of this fork is to make modifications and improve the replay ability 
 
 Quit: Esc
 
+Score is handled by the last paddle to touch the ball when it enters a score zone gets the point. If your paddle was the last one hit and you score on your own zone, you lose a point. Game ends at 10 points
+
 ## Current Improvements
 
  - Adjust padding of paddle movement
  - Adjust controls and make them constants in the file for easy editing
  - Remove lines behind paddle to emphasize out of bounds
+ - Create scouring system based on last paddle touched
+ - End game at 10 points
+ - Adjust delay before ball reset
+ 
 
 ## To Dos
 
  - Add Sound Effects
- - Create scouring system based on last paddle touched
- - End game at 15 points
- - Adjust delay before ball reset
  - Game start and end UI menus
  - AI and player select options
  - Package game for widespread playability

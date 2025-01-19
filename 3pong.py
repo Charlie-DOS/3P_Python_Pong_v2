@@ -53,9 +53,10 @@ def get_hex_walls():
     return walls
 
 class Paddle:
-    def __init__(self, angle, color):
+    def __init__(self, angle, color, player):
         self.angle = math.radians(angle)  # Convert to radians
         self.color = color
+        self.player = player
         self.position = 0  # Position along the hexagon side
         self.score = 0
         
@@ -202,9 +203,9 @@ class Ball:
 def main():
     # Create paddles at centers of walls: 30° (top-right), 150° (bottom-right), 270° (left)
     paddles = [
-        Paddle(270, RED),   # Actually defends ~90° side
-        Paddle(30,  GREEN), # Actually defends ~210° side
-        Paddle(150, BLUE)   # Actually defends ~330° side
+        Paddle(270, RED, "P1"),   # Actually defends ~90° side
+        Paddle(30,  GREEN, "P2"), # Actually defends ~210° side
+        Paddle(150, BLUE, "P3")   # Actually defends ~330° side
     ]
 
     last_paddle = None
@@ -212,6 +213,8 @@ def main():
     ball = Ball()
     clock = pygame.time.Clock()
     walls = get_hex_walls()
+    game_over = False
+    winner = None
     
     running = True
     while running:
@@ -219,6 +222,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
         
         # Handle paddle movement
         keys = pygame.key.get_pressed()
@@ -243,6 +247,19 @@ def main():
         # esc to quit game
         if keys[QUIT_GAME]:
             running = False
+
+        # If the game is over, skip the gameplay logic
+        if game_over:
+            # Display the winner
+            font = pygame.font.Font(None, 72)
+            winner_text = f"{winner.player} WINS!"
+            text = font.render(winner_text, True, winner.color)
+            text_rect = text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
+            screen.blit(text, text_rect)
+
+            pygame.display.flip()
+            continue  # Skip the rest of the loop when game is over
+
         # Move ball
         ball.move()
         
@@ -272,31 +289,28 @@ def main():
             last_paddle = None
             ball.reset()
         
+        # Check for winner
+        for paddle in paddles:
+            if paddle.score >= 10:
+                game_over = True
+                winner = paddle
+                break
+
         # Draw everything
         screen.fill(BLACK)
         
         # Draw hexagon border (modified to draw only bounce walls)
-        hex_points = []
-        center_x = WINDOW_SIZE // 2
-        center_y = WINDOW_SIZE // 2
-        for i in range(6):
-            angle = math.pi/3 * i
-            x = center_x + HEX_RADIUS * math.cos(angle)
-            y = center_y + HEX_RADIUS * math.sin(angle)
-            hex_points.append((int(x), int(y)))
-        # pygame.draw.polygon(screen, WHITE, walls, 2)
         pygame.draw.line(screen, WHITE, walls[1][0], walls[1][1], 2)
         pygame.draw.line(screen, WHITE, walls[3][0], walls[3][1], 2)
         pygame.draw.line(screen, WHITE, walls[5][0], walls[5][1], 2)
 
-        
         # Draw paddles and scores
         font = pygame.font.Font(None, 36)
         for i, paddle in enumerate(paddles):
             paddle.draw()
             score_text = font.render(str(paddle.score), True, paddle.color)
-            text_x = center_x + (HEX_RADIUS + 30) * math.cos(paddle.angle)
-            text_y = center_y + (HEX_RADIUS + 30) * math.sin(paddle.angle)
+            text_x = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.cos(paddle.angle)
+            text_y = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.sin(paddle.angle)
             screen.blit(score_text, (text_x - 10, text_y - 10))
         
         ball.draw()
