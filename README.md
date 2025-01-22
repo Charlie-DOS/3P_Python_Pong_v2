@@ -19,11 +19,11 @@ Score is handled by the last paddle to touch the ball when it enters a score zon
  - Create scouring system based on last paddle touched
  - End game at 10 points
  - Adjust delay before ball reset
+ - Add Sound Effects
  
 
 ## To Dos
 
- - Add Sound Effects
  - Game start and end UI menus
  - AI and player select options
  - Package game for widespread playability
