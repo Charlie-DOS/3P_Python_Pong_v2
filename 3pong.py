@@ -1,3 +1,4 @@
+import os
 import pygame
 import math
 import random
@@ -22,6 +23,8 @@ BALL_RADIUS = 10
 BALL_SPEED = 5
 PADDLE_SPEED = 8
 HEX_RADIUS = WINDOW_SIZE // 3
+main_dir = os.path.split(os.path.abspath(__file__))[0]
+data_dir = os.path.join(main_dir, "data")
 
 # Colors
 WHITE = (255, 255, 255)
@@ -33,6 +36,21 @@ BLACK = (0, 0, 0)
 # Set up display
 screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
 pygame.display.set_caption("Hexagonal Pong")
+
+# utils
+def load_sound(name):
+    class NoneSound:
+        def play(self):
+            pass
+
+    if not pygame.mixer or not pygame.mixer.get_init():
+        return NoneSound()
+
+    fullname = os.path.join(data_dir, name)
+    sound = pygame.mixer.Sound(fullname)
+
+    return sound
+
 
 def get_hex_walls():
     """Return list of wall segments as (start_point, end_point) tuples"""
@@ -189,16 +207,13 @@ class Ball:
         for i, wall in enumerate(walls):
             if self.line_collision(wall[0], wall[1]):
                 # Check if this wall is a scoring wall (opposite to a paddle)
-                is_scoring_wall = False
                 for paddle in paddles:
                     # Get the wall number opposite to this paddle (add 3 positions in hexagon)
                     paddle_wall_num = int(math.degrees(paddle.angle) / 60) % 6
                     if i == paddle_wall_num:
-                        is_scoring_wall = True
-
-                        break
-                return is_scoring_wall  # Only return True if it's a scoring wall
-        return False
+                        return "scoring_wall"
+                return "bounce_wall"      
+        return None
 
 def main():
     # Create paddles at centers of walls: 30° (top-right), 150° (bottom-right), 270° (left)
@@ -223,7 +238,14 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        
+        # Load Sound Effects
+        p1_s = load_sound("p1.wav")
+        p2_s = load_sound("p2.wav")
+        p3_s = load_sound("p3.wav")
+        score_s = load_sound("score.wav")
+        wall_s = load_sound("wall.wav")
+        win_s = load_sound("win.wav")
+
         # Handle paddle movement
         keys = pygame.key.get_pressed()
         # Player 1 controls (A/S)
@@ -251,6 +273,7 @@ def main():
         # If the game is over, skip the gameplay logic
         if game_over:
             # Display the winner
+            win_s.play()
             font = pygame.font.Font(None, 72)
             winner_text = f"{winner.player} WINS!"
             text = font.render(winner_text, True, winner.color)
@@ -267,11 +290,18 @@ def main():
         for paddle in paddles:
             if ball.check_paddle_collision(paddle):
                 last_paddle = paddle
+                if paddle.player == "P1":
+                    p1_s.play()
+                elif paddle.player == "P2":
+                    p2_s.play()
+                elif paddle.player == "P3":
+                    p3_s.play()
 
-        # Check for collisions with walls
-        if ball.check_wall_collisions(walls, paddles):
+        collision_type = ball.check_wall_collisions(walls, paddles)
+        if collision_type == "scoring_wall":
             # If scoring wall hit, last active paddle gets the point
             # If the last paddle hits it's own scoring wall, decrease points
+            score_s.play()
             min_dist = float('inf')
             losing_paddle = None
             for paddle in paddles:
@@ -288,7 +318,11 @@ def main():
                 last_paddle.score += 1
             last_paddle = None
             ball.reset()
-        
+        if collision_type == "bounce_wall":
+            wall_s.play()
+
+
+
         # Check for winner
         for paddle in paddles:
             if paddle.score >= 10:
