@@ -277,7 +277,7 @@ def draw_pause_menu(language="en"):
     """Draw the pause menu overlay"""
     # Create semi-transparent overlay
     overlay = pygame.Surface((WINDOW_SIZE, WINDOW_SIZE))
-    overlay.set_alpha(0)
+    overlay.set_alpha(80)
     screen.blit(overlay, (0, 0))
     
     # Draw pause text
@@ -310,7 +310,7 @@ def main():
     
     clock = pygame.time.Clock()
     running = True
-    
+    last_game_state = None
     while running:
         # Event handling
         for event in pygame.event.get():
@@ -347,10 +347,13 @@ def main():
             continue
             
         elif game_state == PAUSED:
-            draw_pause_menu(language)
-            pygame.display.flip()
+            if last_game_state != PAUSED:
+                draw_pause_menu(language)
+                pygame.display.flip()
+                last_game_state = game_state   
+
             continue
-            
+
         elif game_state == GAME_OVER:
             screen.fill(BLACK)
             win_s.play()
@@ -455,6 +458,7 @@ def main():
             ball.draw()
             pygame.display.flip()
 
+        last_game_state = game_state
         clock.tick(60)
 
     pygame.quit()
