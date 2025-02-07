@@ -1,0 +1,56 @@
+{
+    "en": {
+        "title": "3 Player Pong",
+        "start": "Press ENTER to Start",
+        "controls": [
+            "Controls:",
+            "Player 1 (Red): A/S",
+            "Player 2 (Green): UP/DOWN",
+            "Player 3 (Blue): L/O",
+            "Pause: P",
+            "Language: TAB",
+            "Quit: ESC"
+        ],
+        "paused": "PAUSED",
+        "resume": "Press P to Resume",
+        "winner": "WINS!",
+        "play_again": "Press ENTER to Play Again",
+        "quit": "Press ESC to Quit"
+    },
+    "ua": {
+        "title": "Понг на 3 гравців",
+        "start": "Натисніть ENTER щоб почати",
+        "controls": [
+            "Керування:",
+            "Гравець 1 (Червоний): A/S",
+            "Гравець 2 (Зелений): UP/DOWN",
+            "Гравець 3 (Синій): L/O",
+            "Пауза: P",
+            "Мова: TAB",
+            "Вихід: ESC"
+        ],
+        "paused": "ПАУЗА",
+        "resume": "Натисніть P щоб продовжити",
+        "winner": "ПЕРЕМІГ!",
+        "play_again": "Натисніть ENTER для нової гри",
+        "quit": "Натисніть ESC для виходу"
+    },
+    "ja": {
+        "title": "三人 ポン",
+        "start": "Enter キーを押してスタート",
+        "controls": [
+            "コントロール:",
+            "プレイヤー1 (赤): A/S",
+            "プレイヤー2 (緑): UP/DOWN",
+            "プレイヤー3 (青): L/O",
+            "ポーズ: P",
+            "言語: TAB",
+            "終了: ESC"
+        ],
+        "paused": "ポーズ",
+        "resume": "P を押して再開します",
+        "winner": "勝ちです!",
+        "play_again": "Enter を押してもう一度",
+        "quit": "ESC を押して終了します"
+    }
+}

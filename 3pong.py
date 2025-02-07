@@ -2,6 +2,7 @@ import os
 import pygame
 import math
 import random
+import json
 
 # Initialize Pygame
 pygame.init()
@@ -16,50 +17,13 @@ P3_DOWN = pygame.K_l
 LANGUAGE_KEY = pygame.K_TAB
 QUIT_KEY = pygame.K_ESCAPE
 START_KEY = pygame.K_RETURN
+PAUSE_KEY = pygame.K_p
 
 MENU = "menu"
 PLAYING = "playing"
 PAUSED = "paused"
 GAME_OVER = "game_over"
-# Text content for multiple languages
-TEXTS = {
-    "en": {
-        "title": "3 Player Pong",
-        "start": "Press ENTER to Start",
-        "controls": [
-            "Controls:",
-            "Player 1 (Red): A/S",
-            "Player 2 (Green): UP/DOWN",
-            "Player 3 (Blue): L/O",
-            "Pause: P",
-            "Language: TAB",
-            "Quit: ESC"
-        ],
-        "paused": "PAUSED",
-        "resume": "Press P to Resume",
-        "winner": "WINS!",
-        "play_again": "Press ENTER to Play Again",
-        "quit": "Press ESC to Quit"
-    },
-    "ua": {
-        "title": "Понг на 3 гравців",
-        "start": "Натисніть ENTER щоб почати",
-        "controls": [
-            "Керування:",
-            "Гравець 1 (Червоний): A/S",
-            "Гравець 2 (Зелений): UP/DOWN",
-            "Гравець 3 (Синій): L/O",
-            "Пауза: P",
-            "Мова: TAB",
-            "Вихід: ESC"
-        ],
-        "paused": "ПАУЗА",
-        "resume": "Натисніть P щоб продовжити",
-        "winner": "ПЕРЕМІГ!",
-        "play_again": "Натисніть ENTER для нової гри",
-        "quit": "Натисніть ESC для виходу"
-    }
-}
+
 
 # Constants
 WINDOW_SIZE = 800
@@ -96,6 +60,30 @@ def load_sound(name):
     sound = pygame.mixer.Sound(fullname)
 
     return sound
+
+def get_font_for_language(language, size=36):
+    """Returns a suitable font depending on the selected language."""
+    if language == "ja":
+        return pygame.font.SysFont(["hiraginosans", "osaka", "arialunicode", "notosanscjkjp", "msgothic", "meiryo"], size)
+    return pygame.font.Font(None, size)  # Default Pygame font for other languages
+
+
+# Load the language file
+def load_translations(file_path="lang.json"):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Translation file '{file_path}' not found!")
+    
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+# Fallback function for missing translations
+def get_text(language, key):
+    """Retrieve translated text, falling back to English if not found."""
+    return TRANSLATIONS.get(language, {}).get(key, TRANSLATIONS["en"].get(key, key))
+
+# Load translations once at startup
+TRANSLATIONS = load_translations()
+
 
 
 def get_hex_walls():
@@ -266,20 +254,20 @@ def draw_menu(language="en"):
     screen.fill(BLACK)
     
     # Draw title
-    title_font = pygame.font.Font(None, 72)
-    title_text = title_font.render(TEXTS[language]["title"], True, WHITE)
+    title_font = get_font_for_language(language, 72)
+    title_text = title_font.render(get_text(language, "title"), True, WHITE)
     title_rect = title_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 4))
     screen.blit(title_text, title_rect)
     
     # Draw start instruction
-    font = pygame.font.Font(None, 36)
-    start_text = font.render(TEXTS[language]["start"], True, WHITE)
+    font = get_font_for_language(language)
+    start_text = font.render(get_text(language, "start"), True, WHITE)
     start_rect = start_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
     screen.blit(start_text, start_rect)
     
     # Draw controls
     control_y = WINDOW_SIZE // 2 + 50
-    for line in TEXTS[language]["controls"]:
+    for line in get_text(language, "controls"):
         control_text = font.render(line, True, WHITE)
         control_rect = control_text.get_rect(center=(WINDOW_SIZE // 2, control_y))
         screen.blit(control_text, control_rect)
@@ -293,14 +281,14 @@ def draw_pause_menu(language="en"):
     screen.blit(overlay, (0, 0))
     
     # Draw pause text
-    font = pygame.font.Font(None, 72)
-    pause_text = font.render(TEXTS[language]["paused"], True, WHITE)
+    font = get_font_for_language(language, 72)
+    pause_text = font.render(get_text(language, "paused"), True, WHITE)
     pause_rect = pause_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
     screen.blit(pause_text, pause_rect)
     
     # Draw resume instruction
-    font = pygame.font.Font(None, 36)
-    resume_text = font.render(TEXTS[language]["resume"], True, WHITE)
+    font = get_font_for_language(language)
+    resume_text = font.render(get_text(language, "resume"), True, WHITE)
     resume_rect = resume_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 50))
     screen.blit(resume_text, resume_rect)
 
@@ -330,7 +318,9 @@ def main():
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == LANGUAGE_KEY:
-                    language = "ua" if language == "en" else "en"
+                    available_languages = list(TRANSLATIONS.keys())
+                    current_index = available_languages.index(language)
+                    language = available_languages[(current_index + 1) % len(available_languages)]  # Cycle through languages
                 elif event.key == START_KEY:
                     if game_state in [MENU, GAME_OVER]:
                         game_state = PLAYING
@@ -341,6 +331,14 @@ def main():
                     game_state = PAUSED if game_state == PLAYING else PLAYING
                 elif event.key == QUIT_KEY:
                     running = False
+
+                # Load Sound Effects
+        p1_s = load_sound("p1.wav")
+        p2_s = load_sound("p2.wav")
+        p3_s = load_sound("p3.wav")
+        score_s = load_sound("score.wav")
+        wall_s = load_sound("wall.wav")
+        win_s = load_sound("win.wav")
 
         # Handle different game states
         if game_state == MENU:
@@ -355,17 +353,18 @@ def main():
             
         elif game_state == GAME_OVER:
             screen.fill(BLACK)
+            win_s.play()
             # Draw winner announcement
-            font = pygame.font.Font(None, 72)
-            winner_text = f"{winner.player} {TEXTS[language]['winner']}"
+            font = get_font_for_language(language, 72)
+            winner_text = f"{winner.player} {get_text(language, 'winner')}"
             text = font.render(winner_text, True, winner.color)
             text_rect = text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
             screen.blit(text, text_rect)
             
             # Draw instructions
-            font = pygame.font.Font(None, 36)
-            play_again = font.render(TEXTS[language]["play_again"], True, WHITE)
-            quit_text = font.render(TEXTS[language]["quit"], True, WHITE)
+            font = get_font_for_language(language)
+            play_again = font.render(get_text(language, "play_again"), True, WHITE)
+            quit_text = font.render(get_text(language, "quit"), True, WHITE)
             
             play_again_rect = play_again.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 50))
             quit_rect = quit_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 90))
@@ -392,14 +391,24 @@ def main():
             # Move ball and handle collisions
             ball.move()
             
-            # Check paddle collisions
+            # Check for collisions with paddles
             for paddle in paddles:
                 if ball.check_paddle_collision(paddle):
                     last_paddle = paddle
+                    if paddle.player == "P1":
+                        p1_s.play()
+                    elif paddle.player == "P2":
+                        p2_s.play()
+                    elif paddle.player == "P3":
+                        p3_s.play()
+
 
             # Handle wall collisions
             collision_type = ball.check_wall_collisions(walls, paddles)
             if collision_type == "scoring_wall":
+                # If scoring wall hit, last active paddle gets the point
+                # If the last paddle hits it's own scoring wall, decrease points
+                score_s.play()
                 min_dist = float('inf')
                 losing_paddle = None
                 for paddle in paddles:
@@ -416,6 +425,8 @@ def main():
                     last_paddle.score += 1
                 last_paddle = None
                 ball.reset()
+            if collision_type == "bounce_wall":
+                wall_s.play()
 
             # Check for winner
             for paddle in paddles:
