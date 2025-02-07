@@ -6,14 +6,60 @@ import random
 # Initialize Pygame
 pygame.init()
 
-# Controls
-P1_1 = pygame.K_s
-P1_2 = pygame.K_a
-P2_1 = pygame.K_DOWN
-P2_2 = pygame.K_UP
-P3_1 = pygame.K_o
-P3_2 = pygame.K_l
-QUIT_GAME = pygame.K_ESCAPE
+# Controls - Changed to use clearer names and added pause control
+P1_UP = pygame.K_s
+P1_DOWN = pygame.K_a
+P2_UP = pygame.K_DOWN
+P2_DOWN = pygame.K_UP
+P3_UP = pygame.K_o
+P3_DOWN = pygame.K_l
+LANGUAGE_KEY = pygame.K_TAB
+QUIT_KEY = pygame.K_ESCAPE
+START_KEY = pygame.K_RETURN
+
+MENU = "menu"
+PLAYING = "playing"
+PAUSED = "paused"
+GAME_OVER = "game_over"
+# Text content for multiple languages
+TEXTS = {
+    "en": {
+        "title": "3 Player Pong",
+        "start": "Press ENTER to Start",
+        "controls": [
+            "Controls:",
+            "Player 1 (Red): A/S",
+            "Player 2 (Green): UP/DOWN",
+            "Player 3 (Blue): L/O",
+            "Pause: P",
+            "Language: TAB",
+            "Quit: ESC"
+        ],
+        "paused": "PAUSED",
+        "resume": "Press P to Resume",
+        "winner": "WINS!",
+        "play_again": "Press ENTER to Play Again",
+        "quit": "Press ESC to Quit"
+    },
+    "ua": {
+        "title": "Понг на 3 гравців",
+        "start": "Натисніть ENTER щоб почати",
+        "controls": [
+            "Керування:",
+            "Гравець 1 (Червоний): A/S",
+            "Гравець 2 (Зелений): UP/DOWN",
+            "Гравець 3 (Синій): L/O",
+            "Пауза: P",
+            "Мова: TAB",
+            "Вихід: ESC"
+        ],
+        "paused": "ПАУЗА",
+        "resume": "Натисніть P щоб продовжити",
+        "winner": "ПЕРЕМІГ!",
+        "play_again": "Натисніть ENTER для нової гри",
+        "quit": "Натисніть ESC для виходу"
+    }
+}
 
 # Constants
 WINDOW_SIZE = 800
@@ -215,140 +261,189 @@ class Ball:
                 return "bounce_wall"      
         return None
 
+def draw_menu(language="en"):
+    """Draw the main menu screen"""
+    screen.fill(BLACK)
+    
+    # Draw title
+    title_font = pygame.font.Font(None, 72)
+    title_text = title_font.render(TEXTS[language]["title"], True, WHITE)
+    title_rect = title_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 4))
+    screen.blit(title_text, title_rect)
+    
+    # Draw start instruction
+    font = pygame.font.Font(None, 36)
+    start_text = font.render(TEXTS[language]["start"], True, WHITE)
+    start_rect = start_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
+    screen.blit(start_text, start_rect)
+    
+    # Draw controls
+    control_y = WINDOW_SIZE // 2 + 50
+    for line in TEXTS[language]["controls"]:
+        control_text = font.render(line, True, WHITE)
+        control_rect = control_text.get_rect(center=(WINDOW_SIZE // 2, control_y))
+        screen.blit(control_text, control_rect)
+        control_y += 30
+
+def draw_pause_menu(language="en"):
+    """Draw the pause menu overlay"""
+    # Create semi-transparent overlay
+    overlay = pygame.Surface((WINDOW_SIZE, WINDOW_SIZE))
+    overlay.set_alpha(0)
+    screen.blit(overlay, (0, 0))
+    
+    # Draw pause text
+    font = pygame.font.Font(None, 72)
+    pause_text = font.render(TEXTS[language]["paused"], True, WHITE)
+    pause_rect = pause_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
+    screen.blit(pause_text, pause_rect)
+    
+    # Draw resume instruction
+    font = pygame.font.Font(None, 36)
+    resume_text = font.render(TEXTS[language]["resume"], True, WHITE)
+    resume_rect = resume_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 50))
+    screen.blit(resume_text, resume_rect)
+
 def main():
-    # Create paddles at centers of walls: 30° (top-right), 150° (bottom-right), 270° (left)
+    # Initialize game state and language
+    game_state = MENU
+    language = "en"
+    
+    # Create game objects
     paddles = [
-        Paddle(270, RED, "P1"),   # Actually defends ~90° side
-        Paddle(30,  GREEN, "P2"), # Actually defends ~210° side
-        Paddle(150, BLUE, "P3")   # Actually defends ~330° side
+        Paddle(270, RED, "P1"),
+        Paddle(30, GREEN, "P2"),
+        Paddle(150, BLUE, "P3")
     ]
-
-    last_paddle = None
-
     ball = Ball()
-    clock = pygame.time.Clock()
     walls = get_hex_walls()
-    game_over = False
+    last_paddle = None
     winner = None
     
+    clock = pygame.time.Clock()
     running = True
+    
     while running:
-        # Handle events
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == LANGUAGE_KEY:
+                    language = "ua" if language == "en" else "en"
+                elif event.key == START_KEY:
+                    if game_state in [MENU, GAME_OVER]:
+                        game_state = PLAYING
+                        ball.reset()
+                        for paddle in paddles:
+                            paddle.score = 0
+                elif event.key == PAUSE_KEY and game_state in [PLAYING, PAUSED]:
+                    game_state = PAUSED if game_state == PLAYING else PLAYING
+                elif event.key == QUIT_KEY:
+                    running = False
 
-        # Load Sound Effects
-        p1_s = load_sound("p1.wav")
-        p2_s = load_sound("p2.wav")
-        p3_s = load_sound("p3.wav")
-        score_s = load_sound("score.wav")
-        wall_s = load_sound("wall.wav")
-        win_s = load_sound("win.wav")
-
-        # Handle paddle movement
-        keys = pygame.key.get_pressed()
-        # Player 1 controls (A/S)
-        if keys[P1_1]:
-            paddles[0].position = min(1.6, paddles[0].position + PADDLE_SPEED/100)
-        if keys[P1_2]:
-            paddles[0].position = max(-1.6, paddles[0].position - PADDLE_SPEED/100)
+        # Handle different game states
+        if game_state == MENU:
+            draw_menu(language)
+            pygame.display.flip()
+            continue
             
-        # Player 2 controls (Up/Down)
-        if keys[P2_1]:
-            paddles[1].position = min(1.65, paddles[1].position + PADDLE_SPEED/100)
-        if keys[P2_2]:
-            paddles[1].position = max(-1.5, paddles[1].position - PADDLE_SPEED/100)
+        elif game_state == PAUSED:
+            draw_pause_menu(language)
+            pygame.display.flip()
+            continue
             
-        # Player 3 controls (O/L)
-        if keys[P3_1]:
-            paddles[2].position = min(1.5, paddles[2].position + PADDLE_SPEED/100)
-        if keys[P3_2]:
-            paddles[2].position = max(-1.65, paddles[2].position - PADDLE_SPEED/100)
-        
-        # esc to quit game
-        if keys[QUIT_GAME]:
-            running = False
-
-        # If the game is over, skip the gameplay logic
-        if game_over:
-            # Display the winner
-            win_s.play()
+        elif game_state == GAME_OVER:
+            screen.fill(BLACK)
+            # Draw winner announcement
             font = pygame.font.Font(None, 72)
-            winner_text = f"{winner.player} WINS!"
+            winner_text = f"{winner.player} {TEXTS[language]['winner']}"
             text = font.render(winner_text, True, winner.color)
             text_rect = text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
             screen.blit(text, text_rect)
-
+            
+            # Draw instructions
+            font = pygame.font.Font(None, 36)
+            play_again = font.render(TEXTS[language]["play_again"], True, WHITE)
+            quit_text = font.render(TEXTS[language]["quit"], True, WHITE)
+            
+            play_again_rect = play_again.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 50))
+            quit_rect = quit_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 90))
+            
+            screen.blit(play_again, play_again_rect)
+            screen.blit(quit_text, quit_rect)
             pygame.display.flip()
-            continue  # Skip the rest of the loop when game is over
+            continue
 
-        # Move ball
-        ball.move()
-        
-        # Check for collisions with paddles
-        for paddle in paddles:
-            if ball.check_paddle_collision(paddle):
-                last_paddle = paddle
-                if paddle.player == "P1":
-                    p1_s.play()
-                elif paddle.player == "P2":
-                    p2_s.play()
-                elif paddle.player == "P3":
-                    p3_s.play()
+        # PLAYING state - Game logic
+        if game_state == PLAYING:
+            keys = pygame.key.get_pressed()
+            
+            # Handle paddle movement
+            if keys[P1_UP]: paddles[0].position = min(1.6, paddles[0].position + PADDLE_SPEED/100)
+            if keys[P1_DOWN]: paddles[0].position = max(-1.6, paddles[0].position - PADDLE_SPEED/100)
+            
+            if keys[P2_UP]: paddles[1].position = min(1.65, paddles[1].position + PADDLE_SPEED/100)
+            if keys[P2_DOWN]: paddles[1].position = max(-1.5, paddles[1].position - PADDLE_SPEED/100)
+            
+            if keys[P3_UP]: paddles[2].position = min(1.5, paddles[2].position + PADDLE_SPEED/100)
+            if keys[P3_DOWN]: paddles[2].position = max(-1.65, paddles[2].position - PADDLE_SPEED/100)
 
-        collision_type = ball.check_wall_collisions(walls, paddles)
-        if collision_type == "scoring_wall":
-            # If scoring wall hit, last active paddle gets the point
-            # If the last paddle hits it's own scoring wall, decrease points
-            score_s.play()
-            min_dist = float('inf')
-            losing_paddle = None
+            # Move ball and handle collisions
+            ball.move()
+            
+            # Check paddle collisions
             for paddle in paddles:
-                hex_radius = WINDOW_SIZE // 3
-                paddle_x = WINDOW_SIZE//2 + hex_radius * math.cos(paddle.angle)
-                paddle_y = WINDOW_SIZE//2 + hex_radius * math.sin(paddle.angle)
-                dist = math.sqrt((ball.x - paddle_x)**2 + (ball.y - paddle_y)**2)
-                if dist < min_dist:
-                    min_dist = dist
-                    losing_paddle = paddle
-            if last_paddle == losing_paddle:
-                losing_paddle.score -= 1
-            elif last_paddle:
-                last_paddle.score += 1
-            last_paddle = None
-            ball.reset()
-        if collision_type == "bounce_wall":
-            wall_s.play()
+                if ball.check_paddle_collision(paddle):
+                    last_paddle = paddle
 
+            # Handle wall collisions
+            collision_type = ball.check_wall_collisions(walls, paddles)
+            if collision_type == "scoring_wall":
+                min_dist = float('inf')
+                losing_paddle = None
+                for paddle in paddles:
+                    paddle_x = WINDOW_SIZE//2 + HEX_RADIUS * math.cos(paddle.angle)
+                    paddle_y = WINDOW_SIZE//2 + HEX_RADIUS * math.sin(paddle.angle)
+                    dist = math.sqrt((ball.x - paddle_x)**2 + (ball.y - paddle_y)**2)
+                    if dist < min_dist:
+                        min_dist = dist
+                        losing_paddle = paddle
+                
+                if last_paddle == losing_paddle:
+                    losing_paddle.score -= 1
+                elif last_paddle:
+                    last_paddle.score += 1
+                last_paddle = None
+                ball.reset()
 
+            # Check for winner
+            for paddle in paddles:
+                if paddle.score >= 10:
+                    game_state = GAME_OVER
+                    winner = paddle
+                    break
 
-        # Check for winner
-        for paddle in paddles:
-            if paddle.score >= 10:
-                game_over = True
-                winner = paddle
-                break
+            # Draw game screen
+            screen.fill(BLACK)
+            
+            # Draw walls
+            pygame.draw.line(screen, WHITE, walls[1][0], walls[1][1], 2)
+            pygame.draw.line(screen, WHITE, walls[3][0], walls[3][1], 2)
+            pygame.draw.line(screen, WHITE, walls[5][0], walls[5][1], 2)
 
-        # Draw everything
-        screen.fill(BLACK)
-        
-        # Draw hexagon border (modified to draw only bounce walls)
-        pygame.draw.line(screen, WHITE, walls[1][0], walls[1][1], 2)
-        pygame.draw.line(screen, WHITE, walls[3][0], walls[3][1], 2)
-        pygame.draw.line(screen, WHITE, walls[5][0], walls[5][1], 2)
+            # Draw paddles and scores
+            font = pygame.font.Font(None, 36)
+            for paddle in paddles:
+                paddle.draw()
+                score_text = font.render(str(paddle.score), True, paddle.color)
+                text_x = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.cos(paddle.angle)
+                text_y = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.sin(paddle.angle)
+                screen.blit(score_text, (text_x - 10, text_y - 10))
+            
+            ball.draw()
+            pygame.display.flip()
 
-        # Draw paddles and scores
-        font = pygame.font.Font(None, 36)
-        for i, paddle in enumerate(paddles):
-            paddle.draw()
-            score_text = font.render(str(paddle.score), True, paddle.color)
-            text_x = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.cos(paddle.angle)
-            text_y = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.sin(paddle.angle)
-            screen.blit(score_text, (text_x - 10, text_y - 10))
-        
-        ball.draw()
-        pygame.display.flip()
         clock.tick(60)
 
     pygame.quit()

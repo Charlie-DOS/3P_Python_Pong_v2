@@ -7,6 +7,8 @@ The intent of this fork is to make modifications and improve the replay ability 
 2P (GREEN): Up, Down arrows  
 3P (BLUE): O, L  
 
+Start: Enter
+Pause: P
 Quit: Esc
 
 Score is handled by the last paddle to touch the ball when it enters a score zone gets the point. If your paddle was the last one hit and you score on your own zone, you lose a point. Game ends at 10 points
@@ -20,11 +22,10 @@ Score is handled by the last paddle to touch the ball when it enters a score zon
  - End game at 10 points
  - Adjust delay before ball reset
  - Add Sound Effects
- 
+ - Game start and end UI menus
+
 
 ## To Dos
-
- - Game start and end UI menus
  - AI and player select options
  - Package game for widespread playability
  - Unite drawing and collision code
