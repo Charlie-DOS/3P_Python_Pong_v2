@@ -423,7 +423,8 @@ def main():
                         losing_paddle = paddle
                 
                 if last_paddle == losing_paddle:
-                    losing_paddle.score -= 1
+                    if losing_paddle.score > 0:
+                        losing_paddle.score -= 1
                 elif last_paddle:
                     last_paddle.score += 1
                 last_paddle = None
