@@ -251,7 +251,9 @@ class Ball:
 
 def draw_menu(language="en"):
     """Draw the main menu screen"""
-    screen.fill(BLACK)
+    overlay = pygame.Surface((WINDOW_SIZE, WINDOW_SIZE))
+    overlay.set_alpha(120)
+    screen.blit(overlay, (0, 0))
     
     # Draw title
     title_font = get_font_for_language(language, 72)
@@ -340,43 +342,23 @@ def main():
         wall_s = load_sound("wall.wav")
         win_s = load_sound("win.wav")
 
-        # Handle different game states
-        if game_state == MENU:
-            draw_menu(language)
-            pygame.display.flip()
-            continue
-            
-        elif game_state == PAUSED:
-            if last_game_state != PAUSED:
-                draw_pause_menu(language)
-                pygame.display.flip()
-                last_game_state = game_state   
+        # --- ALWAYS DRAW GAME SCREEN FIRST (before menus) ---
+        screen.fill(BLACK)
+        
+        # Draw walls
+        pygame.draw.line(screen, WHITE, walls[1][0], walls[1][1], 2)
+        pygame.draw.line(screen, WHITE, walls[3][0], walls[3][1], 2)
+        pygame.draw.line(screen, WHITE, walls[5][0], walls[5][1], 2)
 
-            continue
-
-        elif game_state == GAME_OVER:
-            screen.fill(BLACK)
-            win_s.play()
-            # Draw winner announcement
-            font = get_font_for_language(language, 72)
-            winner_text = f"{winner.player} {get_text(language, 'winner')}"
-            text = font.render(winner_text, True, winner.color)
-            text_rect = text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
-            screen.blit(text, text_rect)
-            
-            # Draw instructions
-            font = get_font_for_language(language)
-            play_again = font.render(get_text(language, "play_again"), True, WHITE)
-            quit_text = font.render(get_text(language, "quit"), True, WHITE)
-            
-            play_again_rect = play_again.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 50))
-            quit_rect = quit_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 90))
-            
-            screen.blit(play_again, play_again_rect)
-            screen.blit(quit_text, quit_rect)
-            pygame.display.flip()
-            continue
-
+        # Draw paddles and scores
+        font = pygame.font.Font(None, 36)
+        for paddle in paddles:
+            paddle.draw()
+            score_text = font.render(str(paddle.score), True, paddle.color)
+            text_x = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.cos(paddle.angle)
+            text_y = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.sin(paddle.angle)
+            screen.blit(score_text, (text_x - 10, text_y - 10))
+        
         # PLAYING state - Game logic
         if game_state == PLAYING:
             keys = pygame.key.get_pressed()
@@ -438,29 +420,51 @@ def main():
                     game_state = GAME_OVER
                     winner = paddle
                     break
-
-            # Draw game screen
-            screen.fill(BLACK)
-            
-            # Draw walls
-            pygame.draw.line(screen, WHITE, walls[1][0], walls[1][1], 2)
-            pygame.draw.line(screen, WHITE, walls[3][0], walls[3][1], 2)
-            pygame.draw.line(screen, WHITE, walls[5][0], walls[5][1], 2)
-
-            # Draw paddles and scores
-            font = pygame.font.Font(None, 36)
-            for paddle in paddles:
-                paddle.draw()
-                score_text = font.render(str(paddle.score), True, paddle.color)
-                text_x = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.cos(paddle.angle)
-                text_y = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.sin(paddle.angle)
-                screen.blit(score_text, (text_x - 10, text_y - 10))
             
             ball.draw()
             pygame.display.flip()
 
-        last_game_state = game_state
+            
+
+        # Handle different game states
+        if game_state == MENU:
+            draw_menu(language)
+            pygame.display.flip()
+            continue
+            
+        elif game_state == PAUSED:
+            if last_game_state != PAUSED:
+                draw_pause_menu(language)
+                pygame.display.flip()
+                last_game_state = game_state   
+
+            continue
+
+        elif game_state == GAME_OVER:
+            screen.fill(BLACK)
+            win_s.play()
+            # Draw winner announcement
+            font = get_font_for_language(language, 72)
+            winner_text = f"{winner.player} {get_text(language, 'winner')}"
+            text = font.render(winner_text, True, winner.color)
+            text_rect = text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2))
+            screen.blit(text, text_rect)
+            
+            # Draw instructions
+            font = get_font_for_language(language)
+            play_again = font.render(get_text(language, "play_again"), True, WHITE)
+            quit_text = font.render(get_text(language, "quit"), True, WHITE)
+            
+            play_again_rect = play_again.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 50))
+            quit_rect = quit_text.get_rect(center=(WINDOW_SIZE // 2, WINDOW_SIZE // 2 + 90))
+            
+            screen.blit(play_again, play_again_rect)
+            screen.blit(quit_text, quit_rect)
+            pygame.display.flip()
+            continue
         clock.tick(60)
+        
+        last_game_state = game_state
 
     pygame.quit()
 
