@@ -358,11 +358,11 @@ def main():
             text_x = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.cos(paddle.angle)
             text_y = WINDOW_SIZE // 2 + (HEX_RADIUS + 30) * math.sin(paddle.angle)
             screen.blit(score_text, (text_x - 10, text_y - 10))
-        
-        # PLAYING state - Game logic
-        if game_state == PLAYING:
+
+
+        if game_state in [PLAYING, MENU]:
             keys = pygame.key.get_pressed()
-            
+                
             # Handle paddle movement
             if keys[P1_UP]: paddles[0].position = min(1.6, paddles[0].position + PADDLE_SPEED/100)
             if keys[P1_DOWN]: paddles[0].position = max(-1.6, paddles[0].position - PADDLE_SPEED/100)
@@ -372,6 +372,14 @@ def main():
             
             if keys[P3_UP]: paddles[2].position = min(1.5, paddles[2].position + PADDLE_SPEED/100)
             if keys[P3_DOWN]: paddles[2].position = max(-1.65, paddles[2].position - PADDLE_SPEED/100)
+
+        if game_state in [PLAYING, PAUSED]:
+            ball.draw()
+
+        clock.tick(60)
+        # PLAYING state - Game logic
+        if game_state == PLAYING:
+            
 
             # Move ball and handle collisions
             ball.move()
@@ -421,7 +429,6 @@ def main():
                     winner = paddle
                     break
             
-            ball.draw()
             pygame.display.flip()
 
             
@@ -433,11 +440,8 @@ def main():
             continue
             
         elif game_state == PAUSED:
-            if last_game_state != PAUSED:
-                draw_pause_menu(language)
-                pygame.display.flip()
-                last_game_state = game_state   
-
+            draw_pause_menu(language)
+            pygame.display.flip()
             continue
 
         elif game_state == GAME_OVER:
@@ -462,7 +466,7 @@ def main():
             screen.blit(quit_text, quit_rect)
             pygame.display.flip()
             continue
-        clock.tick(60)
+        
         
         last_game_state = game_state
 
