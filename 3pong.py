@@ -155,21 +155,39 @@ class Ball:
         self.reset()
     
     def reset(self):
+        """Reset ball to center and randomize direction, reset speed multiplier."""
         self.x = WINDOW_SIZE // 2
         self.y = WINDOW_SIZE // 2
         angle = random.uniform(0, 2 * math.pi)
-        self.dx = BALL_SPEED * math.cos(angle)
-        self.dy = BALL_SPEED * math.sin(angle)
+        self.speed_multiplier = 1.0  # Start at normal speed
+        self.dx = BALL_SPEED * math.cos(angle) * self.speed_multiplier
+        self.dy = BALL_SPEED * math.sin(angle) * self.speed_multiplier
         self.flashing = True
         self.flash_start_time = pygame.time.get_ticks()
 
     def move(self):
+        """Move the ball based on its velocity."""
         if not self.flashing:
             self.x += self.dx
             self.y += self.dy
     
+    def increase_speed(self):
+        """Increase speed slightly with each bounce, maxing out at 1.8x speed.
+        Currently, sppeds of 2x or higher cause collision issues"""
+        MAX_SPEED_MULTIPLIER = 1.8
+        SPEED_INCREMENT = 0.06  # Adjust how quickly it speeds up
+        
+        if self.speed_multiplier < MAX_SPEED_MULTIPLIER:
+            self.speed_multiplier += SPEED_INCREMENT
+
+        # Reapply new speed to velocity vector while maintaining direction
+        speed = BALL_SPEED * self.speed_multiplier
+        angle = math.atan2(self.dy, self.dx)  # Get direction
+        self.dx = speed * math.cos(angle)
+        self.dy = speed * math.sin(angle)
+
     def draw(self):
-        # If flashing, toggle visibility
+        """Draw the ball, flashing on reset."""
         if self.flashing:
             elapsed_time = pygame.time.get_ticks() - self.flash_start_time
             if elapsed_time > 500:  # End flashing after 500ms
@@ -177,7 +195,6 @@ class Ball:
             elif (elapsed_time // 100) % 2 == 0:  # Flash toggle every 100ms
                 pygame.draw.circle(screen, WHITE, (int(self.x), int(self.y)), BALL_RADIUS)
         else:
-            # Draw the ball normally
             pygame.draw.circle(screen, WHITE, (int(self.x), int(self.y)), BALL_RADIUS)
 
     def line_collision(self, p1, p2):
@@ -227,6 +244,9 @@ class Ball:
             # Move ball out of collision
             self.x = px + nx * (BALL_RADIUS + 1)
             self.y = py + ny * (BALL_RADIUS + 1)
+
+            # 🚀 Increase speed after bouncing
+            self.increase_speed()
             
             return True
             
@@ -249,6 +269,7 @@ class Ball:
                         return "scoring_wall"
                 return "bounce_wall"      
         return None
+
 
 def draw_menu(language="en"):
     """Draw the main menu screen"""
