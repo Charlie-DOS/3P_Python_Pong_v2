@@ -8,12 +8,12 @@ import json
 pygame.init()
 
 # Controls - Changed to use clearer names and added pause control
-P1_UP = pygame.K_s
-P1_DOWN = pygame.K_a
+P1_UP = pygame.K_y
+P1_DOWN = pygame.K_t
 P2_UP = pygame.K_DOWN
 P2_DOWN = pygame.K_UP
-P3_UP = pygame.K_o
-P3_DOWN = pygame.K_l
+P3_UP = pygame.K_a
+P3_DOWN = pygame.K_z
 LANGUAGE_KEY = pygame.K_TAB
 QUIT_KEY = pygame.K_ESCAPE
 START_KEY = pygame.K_RETURN
@@ -103,6 +103,7 @@ def get_hex_walls():
         walls.append(((x1, y1), (x2, y2)))
     
     return walls
+
 
 class Paddle:
     def __init__(self, angle, color, player):
@@ -362,7 +363,7 @@ def main():
 
         if game_state in [PLAYING, MENU]:
             keys = pygame.key.get_pressed()
-                
+
             # Handle paddle movement
             if keys[P1_UP]: paddles[0].position = min(1.6, paddles[0].position + PADDLE_SPEED/100)
             if keys[P1_DOWN]: paddles[0].position = max(-1.6, paddles[0].position - PADDLE_SPEED/100)

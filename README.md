@@ -3,9 +3,9 @@
 The intent of this fork is to make modifications and improve the replay ability of the 3 person pong game developed by Mycole as well as just learn my way around the pygame library.
 
 ## Controls
-1P (RED): A, S  
+1P (RED): T, Y  
 2P (GREEN): Up, Down arrows  
-3P (BLUE): O, L  
+3P (BLUE): A, Z  
 
 Start: Enter
 Pause: P
@@ -30,10 +30,16 @@ Score is handled by the last paddle to touch the ball when it enters a score zon
  - Package game for widespread playability
  - Unite drawing and collision code
  - Ensure padding is consistent regardless of screen draw size
+ - Increase ball speed as voleys increase
+ - Alter play zone depending on score
+ - Alter ball collision code depending on where the ball and paddle colide
+ - Improve state management
+ - Paddles traverse 1/3 of the playing field
+ - Settings menu
+
+
 
 ## Stretch To Dos
 
- - Settings menu
  - Spinning board mode
- - Paddles traverse 1/3 of the playing field
  - Analog control compatibility 

@@ -4,9 +4,9 @@
         "start": "Press ENTER to Start",
         "controls": [
             "Controls:",
-            "Player 1 (Red): A/S",
+            "Player 1 (Red): T/Y",
             "Player 2 (Green): UP/DOWN",
-            "Player 3 (Blue): L/O",
+            "Player 3 (Blue): A/Z",
             "Pause: P",
             "Language: TAB",
             "Quit: ESC"
@@ -22,9 +22,9 @@
         "start": "Натисніть ENTER щоб почати",
         "controls": [
             "Керування:",
-            "Гравець 1 (Червоний): A/S",
+            "Гравець 1 (Червоний): T/Y",
             "Гравець 2 (Зелений): UP/DOWN",
-            "Гравець 3 (Синій): L/O",
+            "Гравець 3 (Синій): A/Z",
             "Пауза: P",
             "Мова: TAB",
             "Вихід: ESC"
@@ -40,9 +40,9 @@
         "start": "Enter キーを押してスタート",
         "controls": [
             "コントロール:",
-            "プレイヤー1 (赤): A/S",
+            "プレイヤー1 (赤): T/Y",
             "プレイヤー2 (緑): UP/DOWN",
-            "プレイヤー3 (青): L/O",
+            "プレイヤー3 (青): A/Z",
             "ポーズ: P",
             "言語: TAB",
             "終了: ESC"
